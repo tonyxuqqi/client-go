@@ -34,16 +34,26 @@ func main() {
 	fmt.Printf("cluster ID: %d\n", cli.ClusterID())
 
 	key := []byte("usertable:user1489991169483799204")
-	val := []byte("PingCAP")
+	val := make([]byte, 200)
+	for i := 0; i < 200; i++ {
+		val[i] = 'a'
+	}
 
-	for i := 0; i < 10000; i++ {
-		// put key into tikv
-		err = cli.Put(ctx, key, val)
-		if err != nil {
-			panic(err)
+	send := func() {
+		for i := 0; i < 1000000; i++ {
+			// put key into tikv
+			err = cli.Put(ctx, key, val)
+			if err != nil {
+				panic(err)
+			}
 		}
 	}
 
+	go send()
+	go send()
+	go send()
+	go send()
+	send()
 	fmt.Printf("Successfully put %s:%s to tikv\n", key, val)
 
 	// get key from tikv
