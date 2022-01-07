@@ -470,7 +470,9 @@ func (c *Client) CompareAndSwap(ctx context.Context, key, previousValue, newValu
 
 func (c *Client) sendReq(ctx context.Context, key []byte, req *tikvrpc.Request, reverse bool) (*tikvrpc.Response, *locate.KeyLocation, error) {
 	bo := retry.NewBackofferWithVars(ctx, rawkvMaxBackoff, nil)
+	tenant_id := ctx.Value("tenant-id").(uint32)
 	sender := locate.NewRegionRequestSender(c.regionCache, c.rpcClient)
+	req.Context = kvrpcpb.Context{TenantId: tenant_id}
 	for {
 		var loc *locate.KeyLocation
 		var err error

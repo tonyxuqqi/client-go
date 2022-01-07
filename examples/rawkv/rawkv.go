@@ -22,7 +22,10 @@ import (
 )
 
 func main() {
-	cli, err := rawkv.NewClient(context.TODO(), []string{"127.0.0.1:2379"}, config.DefaultConfig().Security)
+	var tenant_id uint32
+	tenant_id = 1
+	ctx := context.WithValue(context.TODO(), "tenant-id", tenant_id)
+	cli, err := rawkv.NewClient(ctx, []string{"172.16.7.237:23711"}, config.DefaultConfig().Security)
 	if err != nil {
 		panic(err)
 	}
@@ -30,32 +33,35 @@ func main() {
 
 	fmt.Printf("cluster ID: %d\n", cli.ClusterID())
 
-	key := []byte("Company")
+	key := []byte("usertable:user1489991169483799204")
 	val := []byte("PingCAP")
 
-	// put key into tikv
-	err = cli.Put(context.TODO(), key, val)
-	if err != nil {
-		panic(err)
+	for i := 0; i < 10000; i++ {
+		// put key into tikv
+		err = cli.Put(ctx, key, val)
+		if err != nil {
+			panic(err)
+		}
 	}
+
 	fmt.Printf("Successfully put %s:%s to tikv\n", key, val)
 
 	// get key from tikv
-	val, err = cli.Get(context.TODO(), key)
+	val, err = cli.Get(ctx, key)
 	if err != nil {
 		panic(err)
 	}
 	fmt.Printf("found val: %s for key: %s\n", val, key)
 
 	// delete key from tikv
-	err = cli.Delete(context.TODO(), key)
+	err = cli.Delete(ctx, key)
 	if err != nil {
 		panic(err)
 	}
 	fmt.Printf("key: %s deleted\n", key)
 
 	// get key again from tikv
-	val, err = cli.Get(context.TODO(), key)
+	val, err = cli.Get(ctx, key)
 	if err != nil {
 		panic(err)
 	}
